@@ -1,0 +1,409 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Truck Telemetry Data",
+  "description": "JSON Schema for mining haul truck telemetry data in BHP Proximity Detection System",
+  "type": "object",
+  "required": ["truck_id", "timestamp", "location"],
+  "properties": {
+    "truck_id": {
+      "type": "string",
+      "description": "Unique identifier for the truck",
+      "pattern": "^[A-Z0-9-]+$",
+      "examples": ["TRK-001", "BHP-WA-042"]
+    },
+    "asset_number": {
+      "type": "string",
+      "description": "Asset management number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the telemetry reading"
+    },
+    "firmware_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Firmware version in semver format"
+    },
+    "hardware_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "model": {
+      "type": "string",
+      "enum": [
+        "Caterpillar 797F",
+        "Caterpillar 793F",
+        "Caterpillar 789D",
+        "Komatsu 980E-5",
+        "Komatsu 930E-5",
+        "Komatsu 830E-5",
+        "Liebherr T 284",
+        "Liebherr T 264",
+        "Hitachi EH5000AC-3"
+      ]
+    },
+    "fleet_id": {
+      "type": "string"
+    },
+    "site_id": {
+      "type": "string"
+    },
+    "location": {
+      "type": "object",
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "altitude": {
+          "type": "number",
+          "description": "Altitude in meters"
+        },
+        "heading": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360,
+          "description": "Heading in degrees"
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Speed in km/h"
+        },
+        "accuracy": {
+          "type": "number",
+          "minimum": 0,
+          "description": "GPS accuracy in meters"
+        }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "properties": {
+        "engine_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "engine_rpm": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3000
+        },
+        "engine_temp": {
+          "type": "number",
+          "description": "Engine temperature in Celsius"
+        },
+        "oil_pressure": {
+          "type": "number",
+          "description": "Oil pressure in kPa"
+        },
+        "oil_temp": {
+          "type": "number",
+          "description": "Oil temperature in Celsius"
+        },
+        "coolant_temp": {
+          "type": "number",
+          "description": "Coolant temperature in Celsius"
+        },
+        "transmission_temp": {
+          "type": "number",
+          "description": "Transmission temperature in Celsius"
+        },
+        "fuel_level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Fuel level percentage"
+        },
+        "fuel_consumption_rate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Fuel consumption in L/hr"
+        },
+        "throttle_position": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "ignition_on": {
+          "type": "boolean"
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "payload_weight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Current payload in tonnes"
+        },
+        "max_payload": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum payload capacity in tonnes"
+        },
+        "load_status": {
+          "type": "string",
+          "enum": ["empty", "loading", "loaded", "dumping", "unknown"]
+        },
+        "tray_position": {
+          "type": "string",
+          "enum": ["lowered", "raising", "raised", "lowering"]
+        },
+        "cycle_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "tyres": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["position"],
+        "properties": {
+          "position": {
+            "type": "string",
+            "enum": [
+              "front_left",
+              "front_right",
+              "rear_inner_left",
+              "rear_inner_right",
+              "rear_outer_left",
+              "rear_outer_right"
+            ]
+          },
+          "pressure": {
+            "type": "number",
+            "description": "Tyre pressure in kPa"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Tyre temperature in Celsius"
+          },
+          "wear_percentage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "brakes": {
+      "type": "object",
+      "properties": {
+        "brake_temp_front": {
+          "type": "number"
+        },
+        "brake_temp_rear": {
+          "type": "number"
+        },
+        "retarder_active": {
+          "type": "boolean"
+        },
+        "retarder_temp": {
+          "type": "number"
+        },
+        "brake_wear_front": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "brake_wear_rear": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "parking_brake_engaged": {
+          "type": "boolean"
+        },
+        "emergency_brake_active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "hydraulics": {
+      "type": "object",
+      "properties": {
+        "hydraulic_pressure": {
+          "type": "number",
+          "description": "Hydraulic pressure in kPa"
+        },
+        "hydraulic_temp": {
+          "type": "number"
+        },
+        "hydraulic_fluid_level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "steering_pressure": {
+          "type": "number"
+        }
+      }
+    },
+    "electrical": {
+      "type": "object",
+      "properties": {
+        "battery_voltage": {
+          "type": "number"
+        },
+        "alternator_output": {
+          "type": "number"
+        },
+        "main_power_on": {
+          "type": "boolean"
+        },
+        "communication_status": {
+          "type": "boolean"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "properties": {
+        "seatbelt_fastened": {
+          "type": "boolean"
+        },
+        "operator_id": {
+          "type": ["string", "null"]
+        },
+        "operator_logged_in": {
+          "type": "boolean"
+        },
+        "fatigue_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "emergency_stop_active": {
+          "type": "boolean"
+        },
+        "lights_on": {
+          "type": "boolean"
+        },
+        "beacon_active": {
+          "type": "boolean"
+        },
+        "fire_suppression_armed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "proximity": {
+      "type": "object",
+      "properties": {
+        "proximity_system_active": {
+          "type": "boolean"
+        },
+        "nearest_vehicle_id": {
+          "type": ["string", "null"]
+        },
+        "nearest_vehicle_distance": {
+          "type": ["number", "null"],
+          "description": "Distance in meters"
+        },
+        "nearest_vehicle_bearing": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 360
+        },
+        "collision_warning_active": {
+          "type": "boolean"
+        },
+        "collision_warning_level": {
+          "type": "string",
+          "enum": ["info", "warning", "critical", "emergency"]
+        },
+        "vehicles_in_range": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "zone": {
+      "type": "object",
+      "properties": {
+        "current_zone_id": {
+          "type": ["string", "null"]
+        },
+        "current_zone_type": {
+          "type": "string",
+          "enum": ["pit", "haul_road", "dump", "stockpile", "workshop", "fuel_bay", "wash_bay", "parking", "exclusion"]
+        },
+        "current_zone_name": {
+          "type": ["string", "null"]
+        },
+        "speed_limit": {
+          "type": "number"
+        },
+        "authorized_for_zone": {
+          "type": "boolean"
+        }
+      }
+    },
+    "operations": {
+      "type": "object",
+      "properties": {
+        "odometer": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Odometer reading in km"
+        },
+        "trip_distance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "operating_mode": {
+          "type": "string",
+          "enum": ["manual", "autonomous", "remote", "maintenance", "standby"]
+        },
+        "shift_id": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "properties": {
+        "last_service_date": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "next_service_due_hours": {
+          "type": "number"
+        },
+        "hours_until_service": {
+          "type": "number"
+        },
+        "active_fault_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warning_lights": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "maintenance_mode": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
+
