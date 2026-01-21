@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test and docs
+tests/
+docs/
+*.md
+
+# Data files (optional - comment out if needed in container)
+data/
+
+# Configs that shouldn't be in container
+configs/
+
+# Monitoring
+monitoring/
+
