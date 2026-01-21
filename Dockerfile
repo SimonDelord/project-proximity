@@ -22,5 +22,6 @@ ENV PYTHONPATH=/app
 EXPOSE 80
 
 # Run the application
-CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "80"]
+## CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["python", "-m", "uvicorn", "src.api.app:app", "--port", "80"]
 
