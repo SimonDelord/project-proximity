@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-poller-camel
+  labels:
+    app: truck-poller-camel
+    app.kubernetes.io/name: truck-poller-camel
+    app.kubernetes.io/component: poller
+    app.kubernetes.io/part-of: project-proximity
+    app.kubernetes.io/runtime: camel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-poller-camel
+  template:
+    metadata:
+      labels:
+        app: truck-poller-camel
+    spec:
+      containers:
+        - name: truck-poller-camel
+          image: truck-poller-camel:latest
+          imagePullPolicy: Always
+          env:
+            - name: TRUCK_API_URL
+              value: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
+            - name: KAFKA_TOPIC
+              value: "truck-telemetry"
+            - name: KAFKA_BROKERS
+              value: "172.30.68.114:9092"
+            - name: POLL_INTERVAL_SECONDS
+              value: "10"
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      restartPolicy: Always
+
