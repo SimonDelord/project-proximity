@@ -18,10 +18,10 @@ COPY src/ /app/src/
 # Set Python path
 ENV PYTHONPATH=/app
 
-# Expose port 80
-EXPOSE 80
+# Expose port 8080
+EXPOSE 8080
 
 # Run the application
-## CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "80"]
-CMD ["python", "-m", "uvicorn", "src.api.app:app", "--port", "80"]
+CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "80"]
+##CMD ["python", "-m", "uvicorn", "src.api.app:app", "--port", "80"]
 
