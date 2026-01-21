@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-poller
+  labels:
+    app: truck-poller
+    app.kubernetes.io/name: truck-poller
+    app.kubernetes.io/component: poller
+    app.kubernetes.io/part-of: project-proximity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-poller
+  template:
+    metadata:
+      labels:
+        app: truck-poller
+    spec:
+      containers:
+        - name: truck-poller
+          image: truck-poller:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: truck-poller-config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      restartPolicy: Always
+

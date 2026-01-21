@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY poller.py .
 
 # Default environment variables (override at runtime)
-ENV TRUCK_API_URL=http://truck-api/trucks/sample
-ENV KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+ENV TRUCK_API_URL=https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+ENV KAFKA_BOOTSTRAP_SERVERS=172.30.68.114:9092
 ENV KAFKA_TOPIC=truck-telemetry
 ENV POLL_INTERVAL_SECONDS=10
 ENV KAFKA_CLIENT_ID=truck-poller

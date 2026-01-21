@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-poller
+  labels:
+    app: truck-poller
+    app.kubernetes.io/name: truck-poller
+    app.kubernetes.io/component: poller
+    app.kubernetes.io/part-of: project-proximity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-poller
+  template:
+    metadata:
+      labels:
+        app: truck-poller
+    spec:
+      containers:
+        - name: truck-poller
+          image: truck-poller:latest
+          imagePullPolicy: Always
+          env:
+            - name: TRUCK_API_URL
+              value: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
+            - name: KAFKA_TOPIC
+              value: "truck-telemetry"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "172.30.68.114:9092"
+            - name: POLL_INTERVAL_SECONDS
+              value: "10"
+            - name: KAFKA_CLIENT_ID
+              value: "truck-poller"
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: "PLAINTEXT"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      restartPolicy: Always
+

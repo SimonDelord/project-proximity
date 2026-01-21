@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: truck-poller-config
+  labels:
+    app: truck-poller
+    app.kubernetes.io/name: truck-poller
+    app.kubernetes.io/part-of: project-proximity
+data:
+  TRUCK_API_URL: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
+  KAFKA_TOPIC: "truck-telemetry"
+  KAFKA_BOOTSTRAP_SERVERS: "172.30.68.114:9092"
+  POLL_INTERVAL_SECONDS: "10"
+  KAFKA_CLIENT_ID: "truck-poller"
+  KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
+
