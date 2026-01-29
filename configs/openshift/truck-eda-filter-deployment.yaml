@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-eda-filter
+  labels:
+    app: truck-eda-filter
+    app.kubernetes.io/name: truck-eda-filter
+    app.kubernetes.io/component: filter
+    app.kubernetes.io/part-of: project-proximity
+    app.kubernetes.io/runtime: camel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-eda-filter
+  template:
+    metadata:
+      labels:
+        app: truck-eda-filter
+    spec:
+      containers:
+        - name: truck-eda-filter
+          image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-eda-filter:latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BROKERS
+              value: "172.30.68.114:9092"
+            - name: KAFKA_SOURCE_TOPIC
+              value: "truck-telemetry-camel"
+            - name: KAFKA_TARGET_TOPIC
+              value: "eda-topic"
+            - name: KAFKA_CONSUMER_GROUP
+              value: "truck-eda-filter-group"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+      restartPolicy: Always
+
