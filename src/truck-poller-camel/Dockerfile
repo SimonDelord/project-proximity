@@ -1,5 +1,5 @@
-# BHP Truck Poller - Camel (Quarkus)
-# Multi-stage build for optimized container image
+# BHP Truck Poller - Camel (Quarkus) - Multi-Truck Support
+# Polls multiple truck API endpoints and publishes to Kafka
 
 # Stage 1: Build
 FROM maven:3.9-eclipse-temurin-17 AS build
@@ -25,11 +25,12 @@ COPY --from=build /app/target/quarkus-app/*.jar ./
 COPY --from=build /app/target/quarkus-app/app/ ./app/
 COPY --from=build /app/target/quarkus-app/quarkus/ ./quarkus/
 
-# Environment variables
-ENV TRUCK_API_URL=https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
-ENV POLL_INTERVAL_SECONDS=10
+# Environment variables - can be overridden at runtime
+# TRUCK_API_URLS: Comma-separated list of truck API endpoints
+ENV TRUCK_API_URLS=https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+ENV POLL_INTERVAL_SECONDS=5
 ENV KAFKA_TOPIC=truck-telemetry-camel
 ENV KAFKA_BROKERS=172.30.68.114:9092
 
 # Run the application
-CMD ["java", "-Dtruck.api.url=${TRUCK_API_URL}", "-Dpoll.interval.seconds=${POLL_INTERVAL_SECONDS}", "-Dkafka.topic=${KAFKA_TOPIC}", "-Dkafka.brokers=${KAFKA_BROKERS}", "-jar", "quarkus-run.jar"]
+CMD ["java", "-Dtruck.api.urls=${TRUCK_API_URLS}", "-Dpoll.interval.seconds=${POLL_INTERVAL_SECONDS}", "-Dkafka.topic=${KAFKA_TOPIC}", "-Dkafka.brokers=${KAFKA_BROKERS}", "-jar", "quarkus-run.jar"]

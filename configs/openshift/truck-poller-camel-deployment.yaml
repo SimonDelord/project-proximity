@@ -23,18 +23,16 @@ spec:
           image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-poller-camel:latest
           imagePullPolicy: Always
           env:
-            - name: TRUCK_API_URL
-              value: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
+            # Comma-separated list of 10 truck API endpoints
+            # In production, these would be different endpoints for different trucks
+            - name: TRUCK_API_URLS
+              value: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
             - name: KAFKA_TOPIC
               value: "truck-telemetry-camel"
             - name: KAFKA_BROKERS
               value: "172.30.68.114:9092"
             - name: POLL_INTERVAL_SECONDS
-              value: "10"
-          ports:
-            - containerPort: 8080
-              name: http
-              protocol: TCP
+              value: "5"
           resources:
             requests:
               memory: "256Mi"
@@ -43,4 +41,3 @@ spec:
               memory: "512Mi"
               cpu: "1000m"
       restartPolicy: Always
-
