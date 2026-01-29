@@ -151,8 +151,10 @@ cd src/truck-poller-camel
 # Build with Maven
 mvn clean package -DskipTests
 
-# Run locally
-java -jar target/quarkus-app/quarkus-run.jar
+# Run locally (with custom truck URLs)
+java -Dtruck.api.urls="http://localhost:8081/trucks/sample,http://localhost:8082/trucks/sample" \
+     -Dkafka.brokers="localhost:9092" \
+     -jar target/quarkus-app/quarkus-run.jar
 ```
 
 **Container Build on OpenShift:**
@@ -174,13 +176,101 @@ oc start-build truck-poller-camel --from-dir=src/truck-poller-camel --follow
 # 2. Run Maven build inside the container
 # 3. Create a JRE-based runtime image
 # 4. Push to the internal registry
+```
 
-# Deploy the application
+#### Configuring the 10 Truck API URLs
+
+The truck API URLs are passed to the container via the **`TRUCK_API_URLS`** environment variable in the deployment manifest. This is a **comma-separated list** of all truck endpoints.
+
+**Method 1: Via Deployment YAML (Recommended)**
+
+The deployment manifest (`configs/openshift/truck-poller-camel-deployment.yaml`) contains the environment variable:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-poller-camel
+spec:
+  template:
+    spec:
+      containers:
+        - name: truck-poller-camel
+          image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-poller-camel:latest
+          env:
+            # Comma-separated list of 10 truck API endpoints
+            - name: TRUCK_API_URLS
+              value: "https://truck-01-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-02-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-03-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-04-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-05-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-06-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-07-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-08-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-09-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,https://truck-10-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
+            - name: KAFKA_TOPIC
+              value: "truck-telemetry-camel"
+            - name: KAFKA_BROKERS
+              value: "172.30.68.114:9092"
+            - name: POLL_INTERVAL_SECONDS
+              value: "5"
+```
+
+**Deploy with the URLs configured:**
+```bash
+# Apply the deployment (URLs are in the YAML)
 oc apply -f configs/openshift/truck-poller-camel-deployment.yaml
 
 # Verify it's running
 oc get pods -l app=truck-poller-camel
 oc logs -f deployment/truck-poller-camel
+```
+
+**Method 2: Override URLs at Runtime with `oc set env`**
+
+You can also update the URLs after deployment:
+
+```bash
+# Update the truck URLs (single command, comma-separated)
+oc set env deployment/truck-poller-camel \
+  TRUCK_API_URLS="https://truck-01-trucks.apps.example.com/trucks/sample,https://truck-02-trucks.apps.example.com/trucks/sample,https://truck-03-trucks.apps.example.com/trucks/sample"
+
+# This will automatically restart the pod with the new URLs
+```
+
+**Method 3: Default URLs in application.properties**
+
+The `application.properties` file contains default URLs that are baked into the image:
+
+```properties
+# src/truck-poller-camel/src/main/resources/application.properties
+
+# Default truck API URLs (can be overridden by TRUCK_API_URLS env var)
+truck.api.urls=\
+https://truck-01-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,\
+https://truck-02-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,\
+https://truck-03-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample,\
+... (up to truck-10)
+```
+
+> **Note:** Environment variables set in the deployment YAML will **override** the values in `application.properties`.
+
+#### URL Format
+
+Each truck URL follows this pattern:
+```
+https://truck-{NN}-trucks.apps.{cluster-domain}/trucks/sample
+```
+
+Where:
+- `{NN}` is the truck number (01, 02, ... 10)
+- `{cluster-domain}` is your OpenShift cluster domain
+
+**Example for 10 trucks:**
+```
+https://truck-01-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-02-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-03-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-04-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-05-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-06-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-07-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-08-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-09-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
+https://truck-10-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
 ```
 
 **Expected Log Output:**
@@ -189,10 +279,13 @@ oc logs -f deployment/truck-poller-camel
 08:46:26 INFO  [truck-poller-route-1] Published Truck 1 to truck-telemetry-camel
 08:46:26 INFO  [truck-poller-route-2] Polling Truck 2: https://truck-02-trucks.../trucks/sample
 08:46:26 INFO  [truck-poller-route-2] Published Truck 2 to truck-telemetry-camel
+08:46:26 INFO  [truck-poller-route-3] Polling Truck 3: https://truck-03-trucks.../trucks/sample
 ...
+08:46:29 INFO  [truck-poller-route-10] Polling Truck 10: https://truck-10-trucks.../trucks/sample
+08:46:29 INFO  [truck-poller-route-10] Published Truck 10 to truck-telemetry-camel
 ```
 
-**Configuration (`application.properties`):**
+**Full Configuration Reference (`application.properties`):**
 ```properties
 # Comma-separated list of truck API URLs
 truck.api.urls=https://truck-01-trucks.../trucks/sample,https://truck-02-trucks.../trucks/sample,...
