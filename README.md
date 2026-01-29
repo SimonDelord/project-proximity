@@ -32,7 +32,7 @@ This project implements real-time proximity monitoring for mining vehicles to en
 │                                    KAFKA                                          │
 │                                                                                   │
 │   ┌──────────────────────┐                              ┌───────────────────┐    │
-│   │ truck-telemetry-camel│ ────────────────────────────▶│     eda-topic     │    │
+│   │ truck-telemetry-camel│                              │     eda-topic     │    │
 │   │                      │                              │                   │    │
 │   └──────────┬───────────┘                              └─────────▲─────────┘    │
 │              │                                                    │              │
