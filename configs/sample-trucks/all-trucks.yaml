@@ -1,0 +1,848 @@
+# Combined deployment manifest for all 10 sample trucks
+# Use: oc apply -f configs/sample-trucks/all-trucks.yaml
+#
+# Prerequisites:
+# 1. Build the image: oc start-build sample-truck --from-dir=. --follow -n trucks
+# 2. Ensure trucks namespace exists: oc new-project trucks
+
+---
+# ============================================================
+# TRUCK 01 - Firmware v2.4.1 - Main Pit North
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-01
+  namespace: trucks
+  labels:
+    app: truck-01
+    firmware-version: v2.4.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-01
+  template:
+    metadata:
+      labels:
+        app: truck-01
+        firmware-version: v2.4.1
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-001"
+            - name: TRUCK_NUMBER
+              value: "1"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "2.4.1-build.2847"
+            - name: HARDWARE_VERSION
+              value: "1.2.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-01
+  namespace: trucks
+spec:
+  selector:
+    app: truck-01
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-01
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-01
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 02 - Firmware v2.4.1 - Main Pit North
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-02
+  namespace: trucks
+  labels:
+    app: truck-02
+    firmware-version: v2.4.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-02
+  template:
+    metadata:
+      labels:
+        app: truck-02
+        firmware-version: v2.4.1
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-002"
+            - name: TRUCK_NUMBER
+              value: "2"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "2.4.1-build.2850"
+            - name: HARDWARE_VERSION
+              value: "1.2.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-02
+  namespace: trucks
+spec:
+  selector:
+    app: truck-02
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-02
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-02
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 03 - Firmware v2.4.1 - Main Pit South
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-03
+  namespace: trucks
+  labels:
+    app: truck-03
+    firmware-version: v2.4.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-03
+  template:
+    metadata:
+      labels:
+        app: truck-03
+        firmware-version: v2.4.1
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-003"
+            - name: TRUCK_NUMBER
+              value: "3"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "2.4.1-build.2853"
+            - name: HARDWARE_VERSION
+              value: "1.2.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-03
+  namespace: trucks
+spec:
+  selector:
+    app: truck-03
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-03
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-03
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 04 - Firmware v2.4.1 - Main Pit South
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-04
+  namespace: trucks
+  labels:
+    app: truck-04
+    firmware-version: v2.4.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-04
+  template:
+    metadata:
+      labels:
+        app: truck-04
+        firmware-version: v2.4.1
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-004"
+            - name: TRUCK_NUMBER
+              value: "4"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "2.4.1-build.2860"
+            - name: HARDWARE_VERSION
+              value: "1.2.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-04
+  namespace: trucks
+spec:
+  selector:
+    app: truck-04
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-04
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-04
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 05 - Firmware v3.0.0 - North Haul Road
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-05
+  namespace: trucks
+  labels:
+    app: truck-05
+    firmware-version: v3.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-05
+  template:
+    metadata:
+      labels:
+        app: truck-05
+        firmware-version: v3.0.0
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-005"
+            - name: TRUCK_NUMBER
+              value: "5"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.0.0-build.3001"
+            - name: HARDWARE_VERSION
+              value: "1.3.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-05
+  namespace: trucks
+spec:
+  selector:
+    app: truck-05
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-05
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-05
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 06 - Firmware v3.0.0 - North Haul Road
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-06
+  namespace: trucks
+  labels:
+    app: truck-06
+    firmware-version: v3.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-06
+  template:
+    metadata:
+      labels:
+        app: truck-06
+        firmware-version: v3.0.0
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-006"
+            - name: TRUCK_NUMBER
+              value: "6"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.0.0-build.3005"
+            - name: HARDWARE_VERSION
+              value: "1.3.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-06
+  namespace: trucks
+spec:
+  selector:
+    app: truck-06
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-06
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-06
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 07 - Firmware v3.0.0 - Waste Dump Alpha
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-07
+  namespace: trucks
+  labels:
+    app: truck-07
+    firmware-version: v3.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-07
+  template:
+    metadata:
+      labels:
+        app: truck-07
+        firmware-version: v3.0.0
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-007"
+            - name: TRUCK_NUMBER
+              value: "7"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.0.0-build.3010"
+            - name: HARDWARE_VERSION
+              value: "1.3.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-07
+  namespace: trucks
+spec:
+  selector:
+    app: truck-07
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-07
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-07
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 08 - Firmware v3.1.2 - Waste Dump Alpha
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-08
+  namespace: trucks
+  labels:
+    app: truck-08
+    firmware-version: v3.1.2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-08
+  template:
+    metadata:
+      labels:
+        app: truck-08
+        firmware-version: v3.1.2
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-008"
+            - name: TRUCK_NUMBER
+              value: "8"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.1.2-build.3120"
+            - name: HARDWARE_VERSION
+              value: "1.4.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-08
+  namespace: trucks
+spec:
+  selector:
+    app: truck-08
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-08
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-08
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 09 - Firmware v3.1.2 - Loading Bay East
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-09
+  namespace: trucks
+  labels:
+    app: truck-09
+    firmware-version: v3.1.2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-09
+  template:
+    metadata:
+      labels:
+        app: truck-09
+        firmware-version: v3.1.2
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-009"
+            - name: TRUCK_NUMBER
+              value: "9"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.1.2-build.3125"
+            - name: HARDWARE_VERSION
+              value: "1.4.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-09
+  namespace: trucks
+spec:
+  selector:
+    app: truck-09
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-09
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-09
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ============================================================
+# TRUCK 10 - Firmware v3.1.2 - Loading Bay East
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-10
+  namespace: trucks
+  labels:
+    app: truck-10
+    firmware-version: v3.1.2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-10
+  template:
+    metadata:
+      labels:
+        app: truck-10
+        firmware-version: v3.1.2
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TRUCK_ID
+              value: "TRK-010"
+            - name: TRUCK_NUMBER
+              value: "10"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.1.2-build.3130"
+            - name: HARDWARE_VERSION
+              value: "1.4.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-10
+  namespace: trucks
+spec:
+  selector:
+    app: truck-10
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-10
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-10
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+

@@ -1,0 +1,4 @@
+# BHP Sample Truck API Dependencies
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+

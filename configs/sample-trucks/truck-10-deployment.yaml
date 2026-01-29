@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-10
+  namespace: trucks
+  labels:
+    app: truck-10
+    app.kubernetes.io/name: truck-10
+    app.kubernetes.io/component: truck-api
+    app.kubernetes.io/part-of: sample-trucks
+    firmware-version: v3.1.2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-10
+  template:
+    metadata:
+      labels:
+        app: truck-10
+        firmware-version: v3.1.2
+    spec:
+      containers:
+        - name: truck-api
+          image: image-registry.openshift-image-registry.svc:5000/trucks/sample-truck:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: TRUCK_ID
+              value: "TRK-010"
+            - name: TRUCK_NUMBER
+              value: "10"
+            - name: FLEET_ID
+              value: "BHP-WA-001"
+            - name: FIRMWARE_VERSION
+              value: "3.1.2-build.3130"
+            - name: HARDWARE_VERSION
+              value: "1.4.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: truck-10
+  namespace: trucks
+  labels:
+    app: truck-10
+spec:
+  selector:
+    app: truck-10
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: truck-10
+  namespace: trucks
+spec:
+  to:
+    kind: Service
+    name: truck-10
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
