@@ -20,13 +20,13 @@ spec:
     spec:
       containers:
         - name: truck-poller-camel
-          image: truck-poller-camel:latest
+          image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-poller-camel:latest
           imagePullPolicy: Always
           env:
             - name: TRUCK_API_URL
               value: "https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample"
             - name: KAFKA_TOPIC
-              value: "truck-telemetry"
+              value: "truck-telemetry-camel"
             - name: KAFKA_BROKERS
               value: "172.30.68.114:9092"
             - name: POLL_INTERVAL_SECONDS

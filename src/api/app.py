@@ -177,6 +177,10 @@ async def get_sample_truck():
     """Get a sample truck with realistic data."""
     truck = create_default_truck("TRK-001", "BHP-WA-001")
     
+    # Set firmware and hardware versions
+    truck.identification.firmware_version = "2.4.1-build.2847"
+    truck.identification.hardware_version = "1.2.0"
+    
     # Populate with sample operational data
     truck.engine.engine_rpm = 1800
     truck.engine.engine_temp = 92.5

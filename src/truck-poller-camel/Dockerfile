@@ -32,7 +32,7 @@ COPY --from=build /app/target/quarkus-app/quarkus/ ./quarkus/
 # Environment variables (override at runtime)
 ENV TRUCK_API_URL=https://project-proximity-git-trucks.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com/trucks/sample
 ENV POLL_INTERVAL_SECONDS=10
-ENV KAFKA_TOPIC=truck-telemetry
+ENV KAFKA_TOPIC=truck-telemetry-camel
 ENV KAFKA_BROKERS=172.30.68.114:9092
 
 # Quarkus configuration overrides

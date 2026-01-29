@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: truck-poller
-          image: truck-poller:latest
+          image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-poller:latest
           imagePullPolicy: Always
           env:
             - name: TRUCK_API_URL
