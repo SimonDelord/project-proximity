@@ -9,49 +9,79 @@ This project implements real-time proximity monitoring for mining vehicles to en
 ## Architecture
 
 ```
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │                        KAFKA                                │
-                                        │  ┌─────────────────┐  ┌──────────────────┐  ┌───────────┐  │
-                                        │  │ truck-telemetry │  │truck-telemetry-  │  │ eda-topic │  │
-                                        │  │                 │  │     camel        │  │           │  │
-                                        │  └────────▲────────┘  └────────▲─────────┘  └─────▲─────┘  │
-                                        │           │                    │                  │        │
-                                        └───────────┼────────────────────┼──────────────────┼────────┘
-                                                    │                    │                  │
-┌─────────────────┐      HTTP       ┌───────────────┴───┐    ┌──────────┴─────────┐    ┌──┴────────────────┐
-│                 │    /trucks/     │                   │    │                    │    │                   │
-│   Truck API     │◄───────────────│   Truck Poller    │    │  Truck Poller      │    │  Truck EDA Filter │
-│   (FastAPI)     │    sample      │   (Python)        │    │  (Camel/Quarkus)   │    │  (Camel/Quarkus)  │
-│                 │                │                   │    │                    │    │                   │
-└─────────────────┘                └───────────────────┘    └────────────────────┘    └───────────────────┘
-        │                                                            │                         │
-        │                                                            │                         │
-        └────────────────────────────────────────────────────────────┘                         │
-                                    HTTP polling                                               │
-                                                                                               │
-                                                    ┌──────────────────────────────────────────┘
-                                                    │  Consumes from truck-telemetry-camel
-                                                    │  Filters: truck_id + firmware_version
-                                                    │  Publishes to: eda-topic
-                                                    ▼
-┌─────────────────┐                     ┌───────────────────────────────────────────────────────────────┐
-│                 │                     │                        EDA Message                            │
-│ Truck Consumer  │◄────────────────────│  {"event_type": "truck_telemetry_filtered",                  │
-│ (Python)        │   truck-telemetry   │   "truck_id": "TRK-001", "firmware_version": "2.4.1"}        │
-│                 │                     └───────────────────────────────────────────────────────────────┘
+                                           ┌─────────────────────────────────────────────────────────────┐
+                                           │                        KAFKA                                │
+                                           │  ┌─────────────────┐  ┌──────────────────┐  ┌───────────┐  │
+                                           │  │ truck-telemetry │  │truck-telemetry-  │  │ eda-topic │  │
+                                           │  │                 │  │     camel        │  │           │  │
+                                           │  └────────▲────────┘  └────────▲─────────┘  └─────▲─────┘  │
+                                           │           │                    │                  │        │
+                                           └───────────┼────────────────────┼──────────────────┼────────┘
+                                                       │                    │                  │
+┌────────────────────────────────────┐                 │                    │                  │
+│        10 SAMPLE TRUCKS            │                 │                    │                  │
+│  ┌──────┐ ┌──────┐     ┌──────┐   │   HTTP          │                    │                  │
+│  │TRK-01│ │TRK-02│ ... │TRK-10│   │  /trucks/       │                    │                  │
+│  │v2.4.1│ │v2.4.1│     │v3.1.2│   │   sample        │                    │                  │
+│  └──┬───┘ └──┬───┘     └──┬───┘   │                 │                    │                  │
+│     └────────┴───────────┴────────┼─────────────────┼────────────────────┤                  │
+└───────────────────────────────────┘                 │                    │                  │
+                                                      │                    │                  │
+                                   ┌──────────────────┴───┐    ┌──────────┴─────────┐    ┌──┴────────────────┐
+                                   │                      │    │                    │    │                   │
+                                   │   Truck Poller       │    │  Truck Poller      │    │  Truck EDA Filter │
+                                   │   (Python)           │    │  (Camel/Quarkus)   │    │  (Camel/Quarkus)  │
+                                   │                      │    │  polls 10 trucks   │    │                   │
+                                   └──────────────────────┘    └────────────────────┘    └───────────────────┘
+                                                                        │                         │
+                                                                        │                         │
+                                                   ┌────────────────────┘                         │
+                                                   │  Consumes from truck-telemetry-camel         │
+                                                   │  Filters: truck_id + firmware_version        │
+                                                   │  Publishes to: eda-topic                     │
+                                                   ▼                                              │
+┌─────────────────┐                    ┌───────────────────────────────────────────────────────────────┐
+│                 │                    │                        EDA Message                            │
+│ Truck Consumer  │◄───────────────────│  {"event_type": "truck_telemetry_filtered",                  │
+│ (Python)        │   truck-telemetry  │   "truck_id": "TRK-001", "firmware_version": "2.4.1"}        │
+│                 │                    └───────────────────────────────────────────────────────────────┘
 └─────────────────┘
 ```
 
 ## Components
 
-### 1. Truck API (`src/api/`)
+### 1. Sample Trucks Fleet (`src/sample_trucks/` + `configs/sample-trucks/`)
+
+A fleet of **10 configurable truck API instances**, each with unique configurations simulating different trucks in the mine.
+
+| Truck | ID | Firmware | Zone | Model |
+|-------|-----|----------|------|-------|
+| truck-01 | TRK-001 | 2.4.1-build.2847 | Main Pit North | CAT 797F |
+| truck-02 | TRK-002 | 2.4.1-build.2850 | Main Pit North | CAT 797F |
+| truck-03 | TRK-003 | 2.4.1-build.2853 | Main Pit South | Komatsu 930E |
+| truck-04 | TRK-004 | 2.4.1-build.2860 | Main Pit South | Komatsu 930E |
+| truck-05 | TRK-005 | 3.0.0-build.3001 | North Haul Road | Liebherr T284 |
+| truck-06 | TRK-006 | 3.0.0-build.3005 | North Haul Road | Liebherr T284 |
+| truck-07 | TRK-007 | 3.0.0-build.3010 | Waste Dump Alpha | CAT 797F |
+| truck-08 | TRK-008 | 3.1.2-build.3120 | Waste Dump Alpha | Hitachi EH5000 |
+| truck-09 | TRK-009 | 3.1.2-build.3125 | Loading Bay East | Komatsu 980E |
+| truck-10 | TRK-010 | 3.1.2-build.3130 | Loading Bay East | CAT 793F |
+
+**3 Firmware Versions:**
+- **v2.4.1** - Trucks 1-4 (Legacy)
+- **v3.0.0** - Trucks 5-7 (Current stable)
+- **v3.1.2** - Trucks 8-10 (Latest release)
+
+---
+
+### 2. Truck API (`src/api/`)
 
 A **FastAPI**-based HTTP service that simulates a mining haul truck and exposes all its configuration parameters via REST endpoints.
 
 | Feature | Description |
 |---------|-------------|
 | Framework | Python / FastAPI |
-| Port | 80 |
+| Port | 8080 |
 | Parameters | 94 telemetry parameters |
 | Truck Models | Caterpillar, Komatsu, Liebherr, Hitachi |
 
@@ -67,7 +97,7 @@ A **FastAPI**-based HTTP service that simulates a mining haul truck and exposes 
 
 ---
 
-### 2. Truck Poller - Python (`src/truck-poller/`)
+### 3. Truck Poller - Python (`src/truck-poller/`)
 
 A **Python** service that polls the Truck API and publishes telemetry to Kafka.
 
@@ -79,24 +109,25 @@ A **Python** service that polls the Truck API and publishes telemetry to Kafka.
 
 ---
 
-### 3. Truck Poller - Camel (`src/truck-poller-camel/`)
+### 4. Truck Poller - Camel (`src/truck-poller-camel/`)
 
-A **Camel Quarkus** service that polls the Truck API and publishes telemetry to Kafka.
+A **Camel Quarkus** service that polls **multiple Truck APIs** (10 trucks) and publishes telemetry to Kafka.
 
 | Feature | Description |
 |---------|-------------|
 | Framework | Apache Camel / Quarkus |
 | Publishes to | `truck-telemetry-camel` topic |
-| Poll Interval | Configurable (default 10s) |
+| Poll Interval | 5 seconds (configurable) |
+| Trucks Polled | 10 concurrent endpoints |
 
 **Camel Route:**
 ```
-Timer (10s) → HTTP GET (Truck API) → Transform → Kafka (truck-telemetry-camel)
+Timer (5s) → HTTP GET (10 Truck APIs) → Transform → Kafka (truck-telemetry-camel)
 ```
 
 ---
 
-### 4. Truck EDA Filter (`src/truck-eda-filter/`)
+### 5. Truck EDA Filter (`src/truck-eda-filter/`)
 
 A **Camel Quarkus** service that consumes truck telemetry, filters to extract key fields, and publishes to an EDA (Event-Driven Architecture) topic.
 
@@ -125,7 +156,7 @@ Kafka (truck-telemetry-camel) → Filter/Transform → Kafka (eda-topic)
 
 ---
 
-### 5. Truck Consumer (`src/truck-consumer/`)
+### 6. Truck Consumer (`src/truck-consumer/`)
 
 A **Python** service that consumes truck telemetry from Kafka and displays/logs the data.
 
@@ -142,46 +173,32 @@ A **Python** service that consumes truck telemetry from Kafka and displays/logs 
 ```
 BHP-project-proximity/
 ├── configs/
-│   └── openshift/                          # OpenShift deployment manifests
-│       ├── kafka/                          # Kafka configuration
-│       │   ├── kafka-cluster.yaml          # Kafka cluster CR (Strimzi)
-│       │   ├── kafka-topics.yaml           # Topic definitions
-│       │   └── kafka-console.yaml          # AMQ Streams Console
-│       ├── truck-poller-deployment.yaml    # Python poller deployment
-│       ├── truck-poller-camel-deployment.yaml  # Camel poller deployment
-│       ├── truck-consumer-deployment.yaml  # Python consumer deployment
-│       └── truck-eda-filter-deployment.yaml    # Camel EDA filter deployment
+│   ├── openshift/                          # OpenShift deployment manifests
+│   │   ├── kafka/                          # Kafka configuration
+│   │   │   ├── kafka-cluster.yaml          # Kafka cluster CR (Strimzi)
+│   │   │   ├── kafka-topics.yaml           # Topic definitions
+│   │   │   └── kafka-console.yaml          # AMQ Streams Console
+│   │   ├── truck-poller-deployment.yaml    # Python poller deployment
+│   │   ├── truck-poller-camel-deployment.yaml  # Camel poller deployment
+│   │   ├── truck-consumer-deployment.yaml  # Python consumer deployment
+│   │   └── truck-eda-filter-deployment.yaml    # Camel EDA filter deployment
+│   │
+│   └── sample-trucks/                      # 10 Sample Truck deployments
+│       ├── README.md                       # Sample trucks documentation
+│       ├── all-trucks.yaml                 # Combined manifest for all 10
+│       ├── truck-01-deployment.yaml        # Individual truck manifests
+│       ├── truck-02-deployment.yaml
+│       └── ... (truck-03 through truck-10)
 │
-├── src/
+├── src/                                    # Source code (see src/README.md)
+│   ├── README.md                           # Source code documentation
 │   ├── api/                                # Truck API (FastAPI)
-│   │   ├── app.py
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   │
 │   ├── models/                             # Data models
-│   │   ├── truck.py                        # Truck dataclasses (94 params)
-│   │   ├── truck_schema.json               # JSON schema
-│   │   └── schema.sql                      # SQL schema
-│   │
+│   ├── sample_trucks/                      # Configurable sample truck API
 │   ├── truck-poller/                       # Python Kafka producer
-│   │   ├── poller.py
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   │
-│   ├── truck-poller-camel/                 # Camel Kafka producer
-│   │   ├── pom.xml
-│   │   ├── Dockerfile
-│   │   └── src/main/java/.../TruckPollerRoute.java
-│   │
+│   ├── truck-poller-camel/                 # Camel Kafka producer (multi-truck)
 │   ├── truck-eda-filter/                   # Camel EDA filter
-│   │   ├── pom.xml
-│   │   ├── Dockerfile
-│   │   └── src/main/java/.../TruckEdaFilterRoute.java
-│   │
 │   └── truck-consumer/                     # Python Kafka consumer
-│       ├── consumer.py
-│       ├── requirements.txt
-│       └── Dockerfile
 │
 ├── scripts/                                # Utility scripts
 ├── data/                                   # Sample data files
@@ -214,50 +231,62 @@ oc wait kafka/my-cluster --for=condition=Ready --timeout=300s
 oc apply -f configs/openshift/kafka/kafka-topics.yaml
 ```
 
-### 2. Deploy Truck API
+### 2. Deploy 10 Sample Trucks
 ```bash
-oc project trucks  # or your target namespace
-oc new-app --name=project-proximity-git https://github.com/SimonDelord/project-proximity.git
+oc new-project trucks
+
+# Create build config
+oc new-build --name=sample-truck --binary --strategy=docker
+
+# Build the image (from project root)
+oc start-build sample-truck --from-dir=. --follow
+
+# Deploy all 10 trucks
+oc apply -f configs/sample-trucks/all-trucks.yaml
+
+# Verify
+oc get pods
+oc get routes
 ```
 
-### 3. Deploy Python Poller
+### 3. Deploy Camel Poller (Multi-Truck)
 ```bash
-oc new-build --name=truck-poller --binary --strategy=docker
-oc start-build truck-poller --from-dir=src/truck-poller --follow
-oc apply -f configs/openshift/truck-poller-deployment.yaml
-```
-
-### 4. Deploy Camel Poller
-```bash
+oc project kafka-demo
 oc new-build --name=truck-poller-camel --binary --strategy=docker
 oc start-build truck-poller-camel --from-dir=src/truck-poller-camel --follow
 oc apply -f configs/openshift/truck-poller-camel-deployment.yaml
 ```
 
-### 5. Deploy EDA Filter
+### 4. Deploy EDA Filter
 ```bash
 oc new-build --name=truck-eda-filter --binary --strategy=docker
 oc start-build truck-eda-filter --from-dir=src/truck-eda-filter --follow
 oc apply -f configs/openshift/truck-eda-filter-deployment.yaml
 ```
 
-### 6. Deploy Consumer
+### 5. Deploy Consumer
 ```bash
 oc new-build --name=truck-consumer --binary --strategy=docker
 oc start-build truck-consumer --from-dir=src/truck-consumer --follow
 oc apply -f configs/openshift/truck-consumer-deployment.yaml
 ```
 
-### 7. Deploy AMQ Streams Console (Optional)
+### 6. Deploy AMQ Streams Console (Optional)
 ```bash
 oc apply -f configs/openshift/kafka/kafka-console.yaml
 ```
 
 ### Verify Deployments
 ```bash
-oc get pods
-oc logs -f deployment/truck-poller-camel
-oc logs -f deployment/truck-eda-filter
+# Check all pods
+oc get pods -n trucks
+oc get pods -n kafka-demo
+
+# View Camel poller logs (should see 10 trucks being polled)
+oc logs -f deployment/truck-poller-camel -n kafka-demo
+
+# View EDA filter logs
+oc logs -f deployment/truck-eda-filter -n kafka-demo
 ```
 
 ## Truck Data Model
@@ -285,10 +314,18 @@ The truck model includes **94 parameters** across 13 categories:
 ### Truck Poller (Python & Camel)
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TRUCK_API_URL` | `https://...` | Truck API endpoint |
+| `TRUCK_API_URLS` | `https://truck-XX-trucks...` | Comma-separated truck endpoints |
 | `KAFKA_BOOTSTRAP_SERVERS` | `172.30.68.114:9092` | Kafka brokers |
-| `KAFKA_TOPIC` | `truck-telemetry` | Target topic |
-| `POLL_INTERVAL_SECONDS` | `10` | Polling frequency |
+| `KAFKA_TOPIC` | `truck-telemetry-camel` | Target topic |
+| `POLL_INTERVAL_SECONDS` | `5` | Polling frequency |
+
+### Sample Trucks
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TRUCK_ID` | `TRK-001` | Unique truck identifier |
+| `TRUCK_NUMBER` | `1` | Numeric truck number (1-10) |
+| `FIRMWARE_VERSION` | `2.4.1-build.2847` | Firmware version |
+| `FLEET_ID` | `BHP-WA-001` | Fleet identifier |
 
 ### EDA Filter (Camel)
 | Variable | Default | Description |
