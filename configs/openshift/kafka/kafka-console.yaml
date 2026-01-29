@@ -1,0 +1,23 @@
+# AMQ Streams Console (StreamsHub Console)
+# Deploy with: oc apply -f kafka-console.yaml
+# 
+# Prerequisites:
+# - AMQ Streams Console operator must be installed
+# - Kafka cluster must be running
+#
+# Access URL: https://streams-console-kafka-demo.apps.<cluster-domain>
+apiVersion: console.streamshub.github.com/v1alpha1
+kind: Console
+metadata:
+  name: streams-console
+  namespace: kafka-demo
+spec:
+  hostname: streams-console-kafka-demo.apps.rosa.rosa-7zgvg.a9ec.p3.openshiftapps.com
+  kafkaClusters:
+    - name: my-cluster
+      namespace: kafka-demo
+      listener: plain
+      properties:
+        values: []
+        valuesFrom: []
+

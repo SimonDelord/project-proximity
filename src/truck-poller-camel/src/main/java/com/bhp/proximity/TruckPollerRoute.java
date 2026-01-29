@@ -19,8 +19,11 @@ public class TruckPollerRoute extends RouteBuilder {
     @ConfigProperty(name = "poll.interval.seconds", defaultValue = "10")
     int pollIntervalSeconds;
 
-    @ConfigProperty(name = "kafka.topic", defaultValue = "truck-telemetry")
+    @ConfigProperty(name = "kafka.topic", defaultValue = "truck-telemetry-camel")
     String kafkaTopic;
+
+    @ConfigProperty(name = "kafka.brokers", defaultValue = "172.30.68.114:9092")
+    String kafkaBrokers;
 
     @Override
     public void configure() throws Exception {
@@ -28,8 +31,8 @@ public class TruckPollerRoute extends RouteBuilder {
         // Error handling
         onException(Exception.class)
             .maximumRedeliveries(3)
-            .redeliveryDelay(1000)
-            .log("ERROR: Failed to process truck telemetry: ${exception.message}")
+            .redeliveryDelay(2000)
+            .log("ERROR: ${exception.message}")
             .handled(true);
 
         // Main route: Timer -> HTTP GET -> Transform -> Kafka
@@ -38,12 +41,11 @@ public class TruckPollerRoute extends RouteBuilder {
             .log("============================================================")
             .log("Polling Truck API: " + truckApiUrl)
             
-            // Call the Truck API
-            .toD("http:" + truckApiUrl.replace("https://", "").replace("http://", "") + "?httpMethod=GET&bridgeEndpoint=true" + 
-                 (truckApiUrl.startsWith("https") ? "&sslContextParameters=#sslContextParameters" : ""))
+            // Call the Truck API using https4 component (handles HTTPS)
+            .toD(truckApiUrl + "?bridgeEndpoint=true")
             
             // Log the response
-            .log("Received truck data: ${body}")
+            .log("Received truck data successfully")
             
             // Transform the payload to add metadata
             .process(exchange -> {
@@ -58,7 +60,7 @@ public class TruckPollerRoute extends RouteBuilder {
                 
                 exchange.getIn().setBody(wrappedPayload);
                 
-                // Extract truck_id for Kafka key (parse from JSON)
+                // Extract truck_id for Kafka key
                 if (originalBody.contains("\"truck_id\"")) {
                     int start = originalBody.indexOf("\"truck_id\":\"") + 12;
                     int end = originalBody.indexOf("\"", start);
@@ -71,9 +73,8 @@ public class TruckPollerRoute extends RouteBuilder {
             
             // Send to Kafka
             .log("Publishing to Kafka topic: " + kafkaTopic)
-            .to("kafka:" + kafkaTopic)
+            .toD("kafka:" + kafkaTopic + "?brokers=" + kafkaBrokers)
             .log("Successfully published truck telemetry to Kafka")
             .log("============================================================");
     }
 }
-

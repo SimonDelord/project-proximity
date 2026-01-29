@@ -1,0 +1,31 @@
+# Kafka Topics for Truck Telemetry
+# Deploy with: oc apply -f kafka-topics.yaml
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: truck-telemetry
+  namespace: kafka-demo
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 10
+  replicas: 3
+  config:
+    retention.ms: 604800000      # 7 days retention
+    segment.bytes: 1073741824    # 1GB segment size
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: truck-telemetry-camel
+  namespace: kafka-demo
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 10
+  replicas: 3
+  config:
+    retention.ms: 604800000      # 7 days retention
+    segment.bytes: 1073741824    # 1GB segment size
+
