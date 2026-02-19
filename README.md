@@ -155,6 +155,35 @@ Kafka (truck-telemetry-camel) → Filter/Transform → Kafka (eda-topic)
 
 ---
 
+### 5. Truck EDA AAP Filter (`src/truck-eda-filter-aap/`)
+
+A **Camel Quarkus** service similar to the EDA Filter, but designed for the **AAP (Ansible Automation Platform)** integration. It consumes from `truck-telemetry-aap` topic and handles multiple payload formats.
+
+| Feature | Description |
+|---------|-------------|
+| Framework | Apache Camel / Quarkus |
+| Consumes from | `truck-telemetry-aap` topic |
+| Publishes to | `truck-telemetry-aap-eda` topic |
+| Filters | `truck_id`, `firmware_version` |
+
+**Key Feature:** Handles multiple payload formats:
+1. **Direct format:** `{ "identification": { "truck_id": "...", "firmware_version": "..." } }`
+2. **Wrapped format:** `{ "key": "...", "value": { "identification": { ... } } }`
+3. **Legacy format:** `{ "data": { "identification": { ... } } }`
+
+**EDA Message Format:**
+```json
+{
+  "event_type": "truck_telemetry_filtered",
+  "timestamp": "2026-02-19T23:36:56.491Z",
+  "source_topic": "truck-telemetry-aap",
+  "truck_id": "TRK-009",
+  "firmware_version": "3.1.2-build.3125"
+}
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -181,7 +210,8 @@ BHP-project-proximity/
 │   ├── models/                             # Data models
 │   ├── sample_trucks/                      # Configurable sample truck API
 │   ├── truck-poller-camel/                 # Camel Kafka producer (multi-truck)
-│   └── truck-eda-filter/                   # Camel EDA filter
+│   ├── truck-eda-filter/                   # Camel EDA filter
+│   └── truck-eda-filter-aap/               # Camel EDA filter for AAP
 │
 ├── scripts/                                # Utility scripts
 ├── data/                                   # Sample data files
@@ -198,6 +228,8 @@ BHP-project-proximity/
 |-------|-------------|-----------|-----------|
 | `truck-telemetry-camel` | Full truck telemetry (Camel poller) | truck-poller-camel | truck-eda-filter |
 | `eda-topic` | Filtered events (truck_id + firmware) | truck-eda-filter | External systems |
+| `truck-telemetry-aap` | Full truck telemetry (AAP integration) | AAP event sources | truck-eda-aap-filter |
+| `truck-telemetry-aap-eda` | Filtered AAP events (truck_id + firmware) | truck-eda-aap-filter | AAP rulebooks |
 
 ## Deployment on OpenShift
 
@@ -309,6 +341,14 @@ The truck model includes **94 parameters** across 13 categories:
 | `KAFKA_SOURCE_TOPIC` | `truck-telemetry-camel` | Source topic |
 | `KAFKA_TARGET_TOPIC` | `eda-topic` | Target topic |
 | `KAFKA_CONSUMER_GROUP` | `truck-eda-filter-group` | Consumer group |
+
+### EDA AAP Filter (Camel)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KAFKA_BROKERS` | `my-cluster-kafka-bootstrap:9092` | Kafka brokers |
+| `KAFKA_SOURCE_TOPIC` | `truck-telemetry-aap` | Source topic (AAP) |
+| `KAFKA_TARGET_TOPIC` | `truck-telemetry-aap-eda` | Target topic |
+| `KAFKA_CONSUMER_GROUP` | `truck-eda-aap-filter-group` | Consumer group |
 
 ## License
 

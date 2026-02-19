@@ -12,6 +12,7 @@ src/
 ├── truck-poller/           # Python Kafka producer
 ├── truck-poller-camel/     # Camel Kafka producer (multi-truck)
 ├── truck-eda-filter/       # Camel EDA filter service
+├── truck-eda-filter-aap/   # Camel EDA filter for AAP (multi-format)
 └── truck-consumer/         # Python Kafka consumer
 ```
 
@@ -337,7 +338,54 @@ oc apply -f configs/openshift/truck-eda-filter-deployment.yaml
 
 ---
 
-### 7. `truck-consumer/` - Python Kafka Consumer
+### 7. `truck-eda-filter-aap/` - Camel EDA Filter for AAP
+
+A Camel Quarkus application similar to truck-eda-filter, but designed for **AAP (Ansible Automation Platform)** integration. It handles multiple payload formats commonly seen in AAP event sources.
+
+| File | Description |
+|------|-------------|
+| `pom.xml` | Maven project file |
+| `Dockerfile` | Multi-stage build |
+| `src/main/java/.../TruckEdaFilterRoute.java` | Camel route with multi-format support |
+| `src/main/resources/application.properties` | Configuration |
+
+**Key Feature - Multi-Format Payload Support:**
+
+The route handles three different JSON payload structures:
+
+1. **Direct format:** `{ "identification": { "truck_id": "...", "firmware_version": "..." } }`
+2. **Wrapped format:** `{ "key": "...", "value": { "identification": { ... } } }`
+3. **Legacy format:** `{ "data": { "identification": { ... } } }`
+
+**Configuration:**
+| Property | Default | Description |
+|----------|---------|-------------|
+| `kafka.brokers` | `my-cluster-kafka-bootstrap:9092` | Kafka bootstrap servers |
+| `kafka.source.topic` | `truck-telemetry-aap` | Source topic |
+| `kafka.target.topic` | `truck-telemetry-aap-eda` | Target topic |
+| `kafka.consumer.group` | `truck-eda-aap-filter-group` | Consumer group |
+
+**Build and Deploy:**
+```bash
+oc new-build --name=truck-eda-aap-filter --binary --strategy=docker -n kafka-demo
+oc start-build truck-eda-aap-filter --from-dir=src/truck-eda-filter-aap --follow -n kafka-demo
+oc apply -f configs/openshift/truck-eda-aap-filter-deployment.yaml
+```
+
+**Output Message Format:**
+```json
+{
+  "event_type": "truck_telemetry_filtered",
+  "timestamp": "2026-02-19T23:36:56.491Z",
+  "source_topic": "truck-telemetry-aap",
+  "truck_id": "TRK-009",
+  "firmware_version": "3.1.2-build.3125"
+}
+```
+
+---
+
+### 8. `truck-consumer/` - Python Kafka Consumer
 
 A simple Python consumer that reads from Kafka and logs messages.
 

@@ -1,0 +1,40 @@
+# Deployment for truck-eda-filter-aap
+# Consumes from truck-telemetry-aap topic, filters truck_id and firmware_version,
+# and publishes to truck-telemetry-aap-eda topic
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: truck-eda-filter-aap
+  namespace: kafka-demo
+  labels:
+    app: truck-eda-filter-aap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: truck-eda-filter-aap
+  template:
+    metadata:
+      labels:
+        app: truck-eda-filter-aap
+    spec:
+      containers:
+        - name: truck-eda-filter-aap
+          image: image-registry.openshift-image-registry.svc:5000/kafka-demo/truck-eda-filter-aap:latest
+          env:
+            - name: KAFKA_BROKERS
+              value: "my-cluster-kafka-bootstrap:9092"
+            - name: KAFKA_SOURCE_TOPIC
+              value: "truck-telemetry-aap"
+            - name: KAFKA_TARGET_TOPIC
+              value: "truck-telemetry-aap-eda"
+            - name: KAFKA_CONSUMER_GROUP
+              value: "truck-eda-filter-aap-group"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
