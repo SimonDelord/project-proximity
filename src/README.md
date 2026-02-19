@@ -1,4 +1,4 @@
-# BHP Project Proximity - Source Code
+# Project Proximity - Source Code
 
 This directory contains all the source code for the Project Proximity microservices.
 
@@ -79,7 +79,7 @@ A configurable version of the Truck API that generates unique data based on envi
 | `TRUCK_ID` | `TRK-001` | Unique truck identifier |
 | `TRUCK_NUMBER` | `1` | Numeric ID (1-10) for data variation |
 | `FIRMWARE_VERSION` | `2.4.1-build.2847` | Firmware version |
-| `FLEET_ID` | `BHP-WA-001` | Fleet identifier |
+| `FLEET_ID` | `FLEET-WA-001` | Fleet identifier |
 
 **Build and Deploy:**
 ```bash
@@ -161,7 +161,7 @@ java -Dtruck.api.urls="http://localhost:8081/trucks/sample,http://localhost:8082
 **Container Build on OpenShift:**
 ```bash
 # Navigate to project root
-cd /path/to/BHP-project-proximity
+cd /path/to/project-proximity
 
 # Switch to the kafka-demo namespace
 oc project kafka-demo

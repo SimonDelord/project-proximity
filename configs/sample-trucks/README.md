@@ -77,7 +77,7 @@ Each truck is configured via environment variables:
 |----------|-------------|---------|
 | `TRUCK_ID` | Unique truck identifier | TRK-001 |
 | `TRUCK_NUMBER` | Numeric truck number (1-10) | 1 |
-| `FLEET_ID` | Fleet identifier | BHP-WA-001 |
+| `FLEET_ID` | Fleet identifier | FLEET-WA-001 |
 | `FIRMWARE_VERSION` | Firmware version string | 2.4.1-build.2847 |
 | `HARDWARE_VERSION` | Hardware version string | 1.2.0 |
 

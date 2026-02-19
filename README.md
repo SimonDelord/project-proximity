@@ -1,4 +1,4 @@
-# BHP Project Proximity
+# Project Proximity
 
 A proximity detection and collision avoidance system for mining fleet operations.
 
@@ -187,7 +187,7 @@ A **Camel Quarkus** service similar to the EDA Filter, but designed for the **AA
 ## Project Structure
 
 ```
-BHP-project-proximity/
+project-proximity/
 ├── configs/
 │   ├── openshift/                          # OpenShift deployment manifests
 │   │   ├── kafka/                          # Kafka configuration
@@ -332,7 +332,7 @@ The truck model includes **94 parameters** across 13 categories:
 | `TRUCK_ID` | `TRK-001` | Unique truck identifier |
 | `TRUCK_NUMBER` | `1` | Numeric truck number (1-10) |
 | `FIRMWARE_VERSION` | `2.4.1-build.2847` | Firmware version |
-| `FLEET_ID` | `BHP-WA-001` | Fleet identifier |
+| `FLEET_ID` | `FLEET-WA-001` | Fleet identifier |
 
 ### EDA Filter (Camel)
 | Variable | Default | Description |
@@ -352,4 +352,4 @@ The truck model includes **94 parameters** across 13 categories:
 
 ## License
 
-Proprietary - BHP Internal Use Only
+Proprietary - Internal Use Only
